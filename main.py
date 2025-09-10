@@ -260,6 +260,7 @@ class CoinBGCController:
         data_paths = {
             'piControl': 'data/input/Data_regression_piControl.csv',
             'historical': 'data/input/Data_regression_historical.csv', 
+            'hist-bgc': 'data/input/Data_regression_hist-bgc.csv',
             'full': 'data/input/Data_regression_ssp585.csv',  # This should combine historical + ssp585 
             'bgc': 'data/input/Data_regression_ssp585-bgc.csv',  # This should combine hist-bgc + ssp585-bgc
             '1pctCO2': 'data/input/Data_regression_1pctCO2.csv',
@@ -277,7 +278,7 @@ class CoinBGCController:
         }
         
         # Load simple datasets first
-        simple_datasets = ['piControl', 'historical', '1pctCO2', '1pctCO2_bgc', 'co2_data']
+        simple_datasets = ['piControl', 'historical', 'hist-bgc', '1pctCO2', '1pctCO2_bgc', 'co2_data']
         for name in simple_datasets:
             if name in data_paths and os.path.exists(data_paths[name]):
                 print(f"    Loading {name} from {data_paths[name]}")

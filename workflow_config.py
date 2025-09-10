@@ -64,7 +64,7 @@ class WorkflowConfigLoader:
     
     def __init__(self):
         """Initialize the workflow config loader."""
-        self.valid_data_sources = ['piControl', 'full', 'bgc', 'historical']
+        self.valid_data_sources = ['piControl', 'full', 'bgc', 'historical', 'hist-bgc', '1pctCO2', '1pctCO2_bgc']
         self.valid_parameter_sources = ['global', 'step', 'value', 'user_input']
         self.valid_step_types = ['calculation', 'optimization', 'multi_optimization']
         self.valid_bounds_types = ['absolute', 'relative', 'centered']

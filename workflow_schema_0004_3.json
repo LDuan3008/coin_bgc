@@ -1,0 +1,153 @@
+{
+  "workflow_name": "COIN-BGC Standard Pipeline",
+  "description": "Standard 6-step optimization pipeline for COIN-BGC",
+  "global_parameters": {
+    "Ksoil_0": {"source": "user_input", "description": "Soil respiration parameter"},
+    "alpha": {"source": "user_input", "description": "Production function exponent"}
+  },
+  "bounds": {
+    "Cland_0":[0.0,200.0],
+    "Kresp_0":[0.0,1.0],
+    "Ktfp_0": [0.01, 1.0],
+    "Ktfp_tas1": [-1, 1],
+    "Ktfp_tas2": [-1, 1],
+    "Ktfp_pr1": [-1, 1],
+    "Ktfp_pr2": [-1.0, 1.0],
+    "Ktfp_co2_half": [10.0, 10000.0],
+    "Ksoil_0":[0.01,0.25],
+    "alpha":[0.0,1.0]
+  },
+  "steps": [
+    {
+      "name": "step2_1",
+      "description": "Calculate initial parameters from piControl data",
+      "step_type": "calculation",
+      "data_sources": ["piControl"],
+      "co2_data": false,
+      "calculations": {
+        "Kresp_0": "1 - npp_mean / gpp_mean",
+        "Cland_0": "npp_mean / Ksoil_0",
+        "Ktfp_0": "gpp_mean / (Cland_0 ** alpha)",
+        "Ktfp_tas0": "tas_mean",
+        "Ktfp_pr0": "pr_mean"
+      }
+    },
+    {
+      "name": "step2_2",
+      "description": "Optimize Ktfp, CO2 and climate parameters using bgc_data and full_data",
+      "step_type": "optimization",
+      "data_sources": ["bgc", "full"],
+      "co2_data":[true,true],
+      "parameters": {
+        "Ksoil_0": {"source": "global"},
+        "alpha": {"source": "global"},
+        "Kresp_0": {"source": "step", "step": "step2_1"},
+        "Cland_0": {"source": "step", "step": "step2_1"},
+        "Ktfp_0": {"source": "step", "step": "step2_1"},
+        "Ktfp_tas0": {"source": "step", "step": "step2_1"},
+        "Ktfp_tas1": {"source": "step", "step": "step2_1"},
+        "Ktfp_tas2": {"source": "step", "step": "step2_1"},
+        "Ktfp_pr0": {"source": "step", "step": "step2_1"},
+        "Ktfp_pr1": {"source": "step", "step": "step2_1"},
+        "Ktfp_pr2": {"source": "step", "step": "step2_1"},
+        "Ktfp_co2_half": 1000.0
+      },
+      "knowns": ["Ksoil_0", "alpha", "Kresp_0", "Cland_0", "Ktfp_tas0", "Ktfp_pr0"],
+      "unknowns": ["Ktfp_co2_half", "Ktfp_tas1", "Ktfp_tas2", "Ktfp_pr1", "Ktfp_pr2", "Ktfp_0"]
+    },
+    {
+      "name": "step2_3",
+      "description": "Optimize the Ksoil, Kresp and Cland values, taking those Ktfp, and alpha values",
+      "step_type": "optimization",
+      "data_sources": [ "bgc", "full"],
+      "co2_data": [true, true],
+      "parameters": {
+        "Ksoil_0": {"source": "global"},
+        "alpha": {"source": "global"},
+        "Kresp_0": {"source": "step", "step": "step2_2"},
+        "Cland_0": {"source": "step", "step": "step2_2"},
+        "Ktfp_0": {"source": "step", "step": "step2_2"},
+        "Ktfp_tas0": {"source": "step", "step": "step2_2"},
+        "Ktfp_pr0": {"source": "step", "step": "step2_2"},
+        "Ktfp_co2_half": {"source": "step", "step": "step2_2"},
+        "Ktfp_tas1": {"source": "step", "step": "step2_2"},
+        "Ktfp_tas2": {"source": "step", "step": "step2_2"},
+        "Ktfp_pr1": {"source": "step", "step": "step2_2"},
+        "Ktfp_pr2": {"source": "step", "step": "step2_2"}
+      },
+      "knowns": [ "Ktfp_0","Ktfp_tas1", "Ktfp_tas2", "Ktfp_pr1", "Ktfp_pr2","Ktfp_co2_half","alpha", "Ktfp_tas0", "Ktfp_pr0"],
+      "unknowns": ["Ksoil_0","Cland_0", "Kresp_0"]
+    },
+    {
+      "name": "step2_4",
+      "description": "Optimize for alpha holding everything else constant",
+      "step_type": "optimization",
+      "data_sources": [ "bgc", "full"],
+      "co2_data": [ true, true],
+      "parameters": {
+        "Ksoil_0": {"source": "step", "step": "step2_3"},
+        "alpha": {"source": "global"},
+        "Kresp_0": {"source": "step", "step": "step2_3"},
+        "Cland_0": {"source": "step", "step": "step2_3"},
+        "Ktfp_0": {"source": "step", "step": "step2_3"},
+        "Ktfp_tas0": {"source": "step", "step": "step2_3"},
+        "Ktfp_pr0": {"source": "step", "step": "step2_3"},
+        "Ktfp_co2_half": {"source": "step", "step": "step2_3"},
+        "Ktfp_tas1": {"source": "step", "step": "step2_3"},
+        "Ktfp_tas2": {"source": "step", "step": "step2_3"},
+        "Ktfp_pr1": {"source": "step", "step": "step2_3"},
+        "Ktfp_pr2": {"source": "step", "step": "step2_3"}
+    },
+      "knowns": ["Ksoil_0","Ktfp_tas0", "Ktfp_pr0", "Kresp_0", "Cland_0","Ktfp_0", "Ktfp_tas1", "Ktfp_tas2", "Ktfp_pr1", "Ktfp_pr2", "Ktfp_co2_half"],
+      "unknowns": [ "alpha"]
+    }
+    ,
+    {
+      "name": "step2_5",
+      "description": "Complete optimization of everything using bgc and full datasets",
+      "step_type": "optimization",
+      "data_sources": [ "bgc", "full"],
+      "plotting_data_sources": ["1pctCO2", "1pctCO2_bgc"],
+      "co2_data": [true, true],
+      "parameters": {
+        "Ksoil_0":{"source": "step", "step": "step2_4"},
+        "alpha": {"source": "step", "step": "step2_4"},
+        "Kresp_0": {"source": "step", "step": "step2_4"},
+        "Cland_0": {"source": "step", "step": "step2_4"},
+        "Ktfp_0": {"source": "step", "step": "step2_4"},
+        "Ktfp_tas0": {"source": "step", "step": "step2_4"},
+        "Ktfp_pr0": {"source": "step", "step": "step2_4"},
+        "Ktfp_co2_half": {"source": "step", "step": "step2_4"},
+        "Ktfp_tas1": {"source": "step", "step": "step2_4"},
+        "Ktfp_tas2": {"source": "step", "step": "step2_4"},
+        "Ktfp_pr1": {"source": "step", "step": "step2_4"},
+        "Ktfp_pr2": {"source": "step", "step": "step2_4"}
+    },
+      "knowns": ["Ktfp_tas0", "Ktfp_pr0"],
+      "unknowns": ["Ksoil_0", "alpha", "Kresp_0", "Cland_0","Ktfp_0", "Ktfp_tas1", "Ktfp_tas2", "Ktfp_pr1", "Ktfp_pr2", "Ktfp_co2_half"]
+    }
+  ],
+  "simulations": [
+    {
+      "name": "piControl",
+      "description": "piControl simulation using final parameters",
+      "data_source": "piControl",
+      "co2_data": false,
+      "parameters_source": "step2_5"
+    },
+    {
+      "name": "bgc", 
+      "description": "BGC simulation using final parameters",
+      "data_source": "bgc",
+      "co2_data": true,
+      "parameters_source": "step2_5"
+    },
+    {
+      "name": "full",
+      "description": "Full simulation using final parameters", 
+      "data_source": "full",
+      "co2_data": true,
+      "parameters_source": "step2_5"
+    }
+  ]
+}
